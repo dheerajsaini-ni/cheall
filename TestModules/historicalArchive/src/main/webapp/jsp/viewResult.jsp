@@ -17,9 +17,15 @@
 		<%
 			
 			List<MetoDataJPA> list = (List<MetoDataJPA>)request.getAttribute("list");
+			String fromDate = ((String)request.getAttribute("fromDate")).replaceAll("/", "");
+			String toDate = ((String)request.getAttribute("toDate")).replaceAll("/", "");
 			
+			// Don't get array here, instead set it in servlet as a string
+			String[] regions = (String[])request.getAttribute("regions");
+			String url = "/meto/fetch/csv/" + fromDate + "/" + toDate + "/" + "LON";
 		%>
 		<div class="mainResult">
+		AA <%= url %>
 			<div class="result">			
 				<table class="tableCss">
 					<tr>
@@ -43,22 +49,12 @@
 						
 					</tr>
 					<% } %>
-					
-					<% 
-					String fromDate = (String)request.getAttribute("fromDate");
-					String toDate = (String)request.getAttribute("toDate");
-            		String[] regions = (String)request.getAttribute("regions"); %>
 
 		            <div>
-		                <form action="/meto/fetch/csv/<%=fromDate %>/<%=toDate%>/<%=regions %>">
+		                <form action="<%= url %>">
 		                    <input type="submit" value="Export data">
 		                </form>
 		            </div>
-
-			        req.setAttribute("fromDate", fromDate);
-			        req.setAttribute("regions", regions);
-					
-					
 				</table>
 			</div><br><br>
 			<div>
