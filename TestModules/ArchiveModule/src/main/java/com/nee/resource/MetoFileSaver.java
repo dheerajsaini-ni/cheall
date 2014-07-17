@@ -1,6 +1,6 @@
 package com.nee.resource;
 
-ximport java.io.IOException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.Channels;
