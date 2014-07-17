@@ -39,7 +39,7 @@ public class MetoGetResource {
 		private String createString(List<MetoDataJPA> list){
 			StringBuffer buff = new StringBuffer();
 			for (MetoDataJPA obj : list){
-				buff.append(obj.getStringRepresentation()).append(System.lineSeparator());
+				buff.append("").append(System.lineSeparator());
 			}
 			return buff.toString();
 		}

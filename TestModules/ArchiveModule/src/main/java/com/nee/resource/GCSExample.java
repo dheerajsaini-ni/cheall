@@ -1,6 +1,7 @@
 package com.nee.resource;
 
-ximport java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.Channels;
@@ -13,7 +14,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.apache.commons.io.IOUtils;
 
@@ -32,8 +32,8 @@ import com.nee.beans.IngestionConfiguration;
  */
 @SuppressWarnings("serial")
 @Path("/gcs")
-public class MetoFileSaver{
- 
+public class GCSExample{
+
 	public static final String ENDPOINT = "gcs";
 	public static final String ENDPOINT_BASE = "/gcs/";
 	public static final String BUCKET = "endpointnee.appspot.com";
@@ -60,7 +60,6 @@ public class MetoFileSaver{
     @Path("get/{filename}")
 	public String doGet(@PathParam("filename") String filename) {
 	  
-		String respString = null;
 		String outputString = null;
 		GcsInputChannel readChannel = null;
 		  
@@ -73,29 +72,25 @@ public class MetoFileSaver{
 			
 			// Do what you need to do with the output here
 			
-			respString = "OK :: Payload starts with > " + outputString.substring(0, 20) + ", Length:" + outputString.length();
 		} catch (IOException e) {
-			respString = "ERROR :: Unable to retrieve file for " + filename;
 			e.printStackTrace();
 		}
 
-		return respString;
+		return "OK :: " + outputString.substring(0, 20) + ", Length:" + outputString.length();
   }
 
 
     @POST
-    @Path("/upload/xml")
+    @Path("/xml")
     @Consumes(MediaType.APPLICATION_XML)
     public Response uploadFile(IngestionConfiguration metoFile) throws IOException{
     	
-    	ResponseBuilder builder = null;
-    	String product = null;
     	GcsOutputChannel outputChannel = null;
         System.out.println("Invoked method" + metoFile);
 
         try{
 	        String data = metoFile.getIngestionEntries().getIngestionEntry().get(0).getBlobData();
-	        product = metoFile.getIngestionEntries().getIngestionEntry().get(0).getProductType();
+	        String product = metoFile.getIngestionEntries().getIngestionEntry().get(0).getProductType();
 	        GcsFileOptions fileOptions = GcsFileOptions.getDefaultInstance();
 	
 	        System.out.println("Putting for the file : " + ENDPOINT_BASE + BUCKET + "/" + product);
@@ -104,14 +99,11 @@ public class MetoFileSaver{
 	        InputStream stream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
 	        copy(stream, Channels.newOutputStream(outputChannel));
 	        
-	        
-	        builder = Response.status(200).entity("Uploaded file name : " + product);
         } catch (IOException e) {
 			e.printStackTrace();
-			builder = Response.status(500).entity("Unable to upload file for  : " + product);
 		}
         
-        return builder.build();
+        return Response.status(200).entity("Uploaded file name : ").build();
     }	
 	
 	/**
@@ -144,4 +136,5 @@ public class MetoFileSaver{
 			output.close();
 		}
 	}
+  
 }
