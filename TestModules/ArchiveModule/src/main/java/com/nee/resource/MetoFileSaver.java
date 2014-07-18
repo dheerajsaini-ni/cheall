@@ -1,5 +1,6 @@
 package com.nee.resource;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,12 +12,14 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.apache.commons.io.IOUtils;
 
+import com.google.api.client.repackaged.org.apache.commons.codec.binary.Base64;
 import com.google.appengine.tools.cloudstorage.GcsFileOptions;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsInputChannel;
@@ -58,10 +61,11 @@ public class MetoFileSaver{
    */
 	@GET
     @Path("get/{filename}")
-	public String doGet(@PathParam("filename") String filename) {
+	@Produces({"application/pdf"})
+	public Response doGet(@PathParam("filename") String filename) {
 	  
-		String respString = null;
 		String outputString = null;
+		ResponseBuilder builder = null;
 		GcsInputChannel readChannel = null;
 		  
 		System.out.println("Putting for the file : " + ENDPOINT_BASE + BUCKET + "/" + filename);
@@ -72,14 +76,18 @@ public class MetoFileSaver{
 			outputString = IOUtils.toString(Channels.newInputStream(readChannel), "UTF-8");
 			
 			// Do what you need to do with the output here
+	        // Base 64 Decoding
+	        Base64 b64 = new Base64();
+	        byte[] outByte = b64.decode(outputString);
 			
-			respString = "OK :: Payload starts with > " + outputString.substring(0, 20) + ", Length:" + outputString.length();
+	        builder = Response
+		            .ok(outByte, "application/pdf")
+		            .header("content-disposition","attachment; filename = " + filename + ".pdf");
 		} catch (IOException e) {
-			respString = "ERROR :: Unable to retrieve file for " + filename;
 			e.printStackTrace();
 		}
 
-		return respString;
+		return builder.build();
   }
 
 
@@ -103,7 +111,6 @@ public class MetoFileSaver{
 	        outputChannel = gcsService.createOrReplace(getFileName(ENDPOINT_BASE + BUCKET + "/" + product), fileOptions);
 	        InputStream stream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
 	        copy(stream, Channels.newOutputStream(outputChannel));
-	        
 	        
 	        builder = Response.status(200).entity("Uploaded file name : " + product);
         } catch (IOException e) {
